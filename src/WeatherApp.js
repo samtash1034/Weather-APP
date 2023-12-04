@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import { ReactComponent as CloudyIcon } from './images/cloudy.svg';
 import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
@@ -104,33 +104,25 @@ const Redo = styled.div`
 `;
 
 const WeatherApp = () => {
-  console.log('--- invoke function component ---');
-  const [weatherElement, setWeatherElement] = useState({
-    observationTime: new Date(),
-    locationName: '',
-    humid: 0,
-    temperature: 0,
-    windSpeed: 0,
-    description: '',
-    weatherCode: 0,
-    rainPossibility: 0,
-    comfortability: '',
+  const [currentWeather, setCurrentWeather] = useState({
+    observationTime: '2019-10-02 22:10:00',
+    locationName: '臺北市',
+    description: '多雲時晴',
+    temperature: 27.5,
+    windSpeed: 0.3,
+    humid: 0.88,
   });
 
-  useEffect(() => {
-    console.log('execute function in useEffect');
-    fetchCurrentWeather();
-    fetchWeatherForecast();
-  }, []);
-
-  const fetchCurrentWeather = () => {
+  const handleClick = () => {
     fetch(
       'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&locationName=臺北'
     )
       .then((response) => response.json())
       .then((data) => {
+        // STEP 1：定義 `locationData` 把回傳的資料中會用到的部分取出來
         const locationData = data.records.location[0];
 
+        // STEP 2：將風速（WDSD）、氣溫（TEMP）和濕度（HUMD）的資料取出
         const weatherElements = locationData.weatherElement.reduce(
           (neededElements, item) => {
             if (['WDSD', 'TEMP', 'HUMD'].includes(item.elementName)) {
@@ -141,78 +133,44 @@ const WeatherApp = () => {
           {}
         );
 
-        setWeatherElement((prevState) => ({
-          ...prevState,
+        // STEP 3：要使用到 React 組件中的資料
+        setCurrentWeather({
           observationTime: locationData.time.obsTime,
           locationName: locationData.locationName,
+          description: '多雲時晴',
           temperature: weatherElements.TEMP,
           windSpeed: weatherElements.WDSD,
           humid: weatherElements.HUMD,
-        }));
-      });
-  };
-
-  const fetchWeatherForecast = () => {
-    fetch(
-      'https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&locationName=臺北市'
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        const locationData = data.records.location[0];
-        const weatherElements = locationData.weatherElement.reduce(
-          (neededElements, item) => {
-            if (['Wx', 'PoP', 'CI'].includes(item.elementName)) {
-              neededElements[item.elementName] = item.time[0].parameter;
-            }
-            return neededElements;
-          },
-          {}
-        );
-
-        setWeatherElement((prevState) => ({
-          ...prevState,
-          description: weatherElements.Wx.parameterName,
-          weatherCode: weatherElements.Wx.parameterValue,
-          rainPossibility: weatherElements.PoP.parameterName,
-          comfortability: weatherElements.CI.parameterName,
-        }));
+        });
       });
   };
 
   return (
     <Container>
-      {console.log('render')}
       <WeatherCard>
-        <Location>{weatherElement.locationName}</Location>
-        <Description>
-          {weatherElement.description} {weatherElement.comfortability}
-        </Description>
+        <Location>{currentWeather.locationName}</Location>
+        <Description>{currentWeather.description}</Description>
         <CurrentWeather>
           <Temperature>
-            {Math.round(weatherElement.temperature)} <Celsius>°C</Celsius>
+            {Math.round(currentWeather.temperature)} <Celsius>°C</Celsius>
           </Temperature>
           <Cloudy />
         </CurrentWeather>
         <AirFlow>
           <AirFlowIcon />
-          {weatherElement.windSpeed} m/h
+          {currentWeather.windSpeed} m/h
         </AirFlow>
         <Rain>
           <RainIcon />
-          {Math.round(weatherElement.rainPossibility)} %
+          {Math.round(currentWeather.humid * 100)} %
         </Rain>
 
-        <Redo
-          onClick={() => {
-            fetchCurrentWeather();
-            fetchWeatherForecast();
-          }}
-        >
+        <Redo onClick={handleClick}>
           最後觀測時間：
           {new Intl.DateTimeFormat('zh-TW', {
             hour: 'numeric',
             minute: 'numeric',
-          }).format(new Date(weatherElement.observationTime))}{' '}
+          }).format(new Date(currentWeather.observationTime))}{' '}
           <RedoIcon />
         </Redo>
       </WeatherCard>
