@@ -7,7 +7,6 @@ function App() {
   return <WeatherApp />;
 }
 
-// 使用 React 18 的 createRoot API
 const rootElement = document.getElementById('root');
 const root = ReactDOM.createRoot(rootElement);
 root.render(<App />);
