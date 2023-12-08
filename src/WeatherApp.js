@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from '@emotion/styled';
 import { ReactComponent as CloudyIcon } from './images/cloudy.svg';
 import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
@@ -117,8 +117,9 @@ const WeatherApp = () => {
     comfortability: '',
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
+  // useCallback 的用法是將一個函式包覆並將該函式記憶起來，最後回傳記憶的函式
+  const fetchData = useCallback(() => {
+    const fetchingData = async () => {
       // 使用 Promise.all 搭配 await 等待兩個 API 都取得回應後才繼續
       const [currentWeather, weatherForecast] = await Promise.all([
         fetchCurrentWeather(),
@@ -130,9 +131,16 @@ const WeatherApp = () => {
         ...weatherForecast,
       });
     };
+    fetchingData();
+    // 因為 fetchingData 沒有相依到 React 組件中的資料狀態，
+    // 所以 dependencies 陣列中不帶入元素
+  }, []); // dependincies 改變才會產生新的 fetchData
 
+  useEffect(() => {
+    console.log('execute function in useEffect');
     fetchData();
-  }, []);
+  }, [fetchData]); //如果沒有寫 useCallback 會造成無限迴圈
+  // (因為 fetchData function 是一個物件，物件指到的記憶體都不相同)
 
   const fetchCurrentWeather = () => {
     return fetch(
@@ -205,12 +213,7 @@ const WeatherApp = () => {
           {Math.round(weatherElement.rainPossibility)} %
         </Rain>
 
-        <Redo
-          onClick={() => {
-            fetchCurrentWeather();
-            fetchWeatherForecast();
-          }}
-        >
+        <Redo onClick={fetchData}>
           最後觀測時間：
           {new Intl.DateTimeFormat('zh-TW', {
             hour: 'numeric',
