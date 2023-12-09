@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import styled from '@emotion/styled';
-import { ReactComponent as CloudyIcon } from './images/cloudy.svg';
-import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
-import { ReactComponent as RainIcon } from './images/rain.svg';
-import { ReactComponent as RedoIcon } from './images/redo.svg';
+import React, { useState, useEffect, useCallback } from "react";
+import styled from "@emotion/styled";
+import { ReactComponent as CloudyIcon } from "./images/day-cloudy.svg";
+import { ReactComponent as AirFlowIcon } from "./images/airFlow.svg";
+import { ReactComponent as RainIcon } from "./images/rain.svg";
+import { ReactComponent as RedoIcon } from "./images/redo.svg";
+import WeatherIcon from "./WeatherIcon";
 
 const Container = styled.div`
   background-color: #ededed;
@@ -53,10 +54,6 @@ const Celsius = styled.div`
   font-size: 42px;
 `;
 
-const Cloudy = styled(CloudyIcon)`
-  flex-basis: 30%;
-`;
-
 const AirFlow = styled.div`
   display: flex;
   align-items: center;
@@ -104,17 +101,17 @@ const Redo = styled.div`
 `;
 
 const WeatherApp = () => {
-  console.log('--- invoke function component ---');
+  console.log("--- invoke function component ---");
   const [weatherElement, setWeatherElement] = useState({
     observationTime: new Date(),
-    locationName: '',
+    locationName: "",
     humid: 0,
     temperature: 0,
     windSpeed: 0,
-    description: '',
+    description: "",
     weatherCode: 0,
     rainPossibility: 0,
-    comfortability: '',
+    comfortability: "",
   });
 
   // useCallback 的用法是將一個函式包覆並將該函式記憶起來，最後回傳記憶的函式
@@ -137,14 +134,14 @@ const WeatherApp = () => {
   }, []); // dependincies 改變才會產生新的 fetchData
 
   useEffect(() => {
-    console.log('execute function in useEffect');
+    console.log("execute function in useEffect");
     fetchData();
   }, [fetchData]); //如果沒有寫 useCallback 會造成無限迴圈
   // (因為 fetchData function 是一個物件，物件指到的記憶體都不相同)
 
   const fetchCurrentWeather = () => {
     return fetch(
-      'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&StationName=新北'
+      "https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&StationName=新北"
     )
       .then((response) => response.json())
       .then((data) => {
@@ -167,14 +164,14 @@ const WeatherApp = () => {
 
   const fetchWeatherForecast = () => {
     return fetch(
-      'https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&locationName=臺北市'
+      "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&locationName=臺北市"
     )
       .then((response) => response.json())
       .then((data) => {
         const locationData = data.records.location[0];
         const weatherElements = locationData.weatherElement.reduce(
           (neededElements, item) => {
-            if (['Wx', 'PoP', 'CI'].includes(item.elementName)) {
+            if (["Wx", "PoP", "CI"].includes(item.elementName)) {
               neededElements[item.elementName] = item.time[0].parameter;
             }
             return neededElements;
@@ -192,7 +189,7 @@ const WeatherApp = () => {
 
   return (
     <Container>
-      {console.log('render')}
+      {console.log("render")}
       <WeatherCard>
         <Location>{weatherElement.locationName}</Location>
         <Description>
@@ -202,7 +199,10 @@ const WeatherApp = () => {
           <Temperature>
             {Math.round(weatherElement.temperature)} <Celsius>°C</Celsius>
           </Temperature>
-          <Cloudy />
+          <WeatherIcon
+            currentWeatherCode={weatherElement.weatherCode}
+            moment="night"
+          />
         </CurrentWeather>
         <AirFlow>
           <AirFlowIcon />
@@ -215,10 +215,10 @@ const WeatherApp = () => {
 
         <Redo onClick={fetchData}>
           最後觀測時間：
-          {new Intl.DateTimeFormat('zh-TW', {
-            hour: 'numeric',
-            minute: 'numeric',
-          }).format(new Date(weatherElement.observationTime))}{' '}
+          {new Intl.DateTimeFormat("zh-TW", {
+            hour: "numeric",
+            minute: "numeric",
+          }).format(new Date(weatherElement.observationTime))}{" "}
           <RedoIcon />
         </Redo>
       </WeatherCard>
