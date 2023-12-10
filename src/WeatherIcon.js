@@ -69,10 +69,6 @@ const weatherCode2Type = (weatherCode) => {
 
 const WeatherIcon = ({ currentWeatherCode, moment }) => {
   const [currentWeatherIcon, setCurrentWeatherIcon] = useState("isClear");
-  console.log(currentWeatherCode);
-
-  console.log(currentWeatherIcon);
-  console.log(moment);
 
   // STEP 3：透過 useMemo 保存計算結果，記得要在 dependencies 中放入 currentWeatherCode
   const theWeatherIcon = useMemo(

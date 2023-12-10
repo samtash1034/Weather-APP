@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import styled from "@emotion/styled";
-import { ReactComponent as CloudyIcon } from "./images/day-cloudy.svg";
 import { ReactComponent as AirFlowIcon } from "./images/airFlow.svg";
 import { ReactComponent as RainIcon } from "./images/rain.svg";
 import { ReactComponent as RedoIcon } from "./images/redo.svg";
 import WeatherIcon from "./WeatherIcon";
+import sunriseAndSunsetData from "./sunrise-sunset.json";
 
 const Container = styled.div`
   background-color: #ededed;
@@ -100,6 +100,49 @@ const Redo = styled.div`
   }
 `;
 
+const getMoment = (locationName) => {
+  // 新北 => 新北市
+  locationName = locationName + "市";
+
+  // STEP 2：從日出日落時間中找出符合的地區
+  const location = sunriseAndSunsetData.find(
+    (data) => data.locationName === locationName
+  );
+
+  // STEP 3：找不到的話則回傳 null
+  if (!location) return null;
+
+  // STEP 4：取得當前時間
+  const now = new Date();
+  now.setFullYear(2019);
+  // STEP 5：將當前時間以 "2019-10-08" 的時間格式呈現
+  const nowDate = Intl.DateTimeFormat("zh-TW", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(now)
+    .replace(/\//g, "-");
+
+  // STEP 6：從該地區中找到對應的日期
+  const locationDate =
+    location.time && location.time.find((time) => time.dataTime === nowDate);
+
+  // STEP 7：將日出日落以及當前時間轉成時間戳記（TimeStamp）
+  const sunriseTimestamp = new Date(
+    `${locationDate.dataTime} ${locationDate.sunrise}`
+  ).getTime();
+  const sunsetTimestamp = new Date(
+    `${locationDate.dataTime} ${locationDate.sunset}`
+  ).getTime();
+  const nowTimeStamp = now.getTime();
+
+  // STEP 8：若當前時間介於日出和日落中間，則表示為白天，否則為晚上
+  return sunriseTimestamp <= nowTimeStamp && nowTimeStamp <= sunsetTimestamp
+    ? "day"
+    : "night";
+};
+
 const WeatherApp = () => {
   console.log("--- invoke function component ---");
   const [weatherElement, setWeatherElement] = useState({
@@ -187,6 +230,12 @@ const WeatherApp = () => {
       });
   };
 
+  // STEP 3：透過 useMemo 避免每次都須重新計算取值，記得帶入 dependencies
+  const moment = useMemo(
+    () => getMoment(weatherElement.locationName),
+    [weatherElement.locationName]
+  );
+
   return (
     <Container>
       {console.log("render")}
@@ -201,7 +250,7 @@ const WeatherApp = () => {
           </Temperature>
           <WeatherIcon
             currentWeatherCode={weatherElement.weatherCode}
-            moment="night"
+            moment={moment || "day"}
           />
         </CurrentWeather>
         <AirFlow>
