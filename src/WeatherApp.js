@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import styled from "@emotion/styled";
-import { ReactComponent as AirFlowIcon } from "./images/airFlow.svg";
-import { ReactComponent as RainIcon } from "./images/rain.svg";
-import { ReactComponent as RedoIcon } from "./images/redo.svg";
-import WeatherIcon from "./WeatherIcon";
-import sunriseAndSunsetData from "./sunrise-sunset.json";
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import styled from '@emotion/styled';
+import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
+import { ReactComponent as RainIcon } from './images/rain.svg';
+import { ReactComponent as RefreshIcon } from './images/redo.svg';
+import WeatherIcon from './WeatherIcon';
+import sunriseAndSunsetData from './sunrise-sunset.json';
+import { ReactComponent as LoadingIcon } from './images/loading.svg';
 
 const Container = styled.div`
   background-color: #ededed;
@@ -83,7 +84,7 @@ const Rain = styled.div`
   }
 `;
 
-const Redo = styled.div`
+const Refresh = styled.div`
   position: absolute;
   right: 15px;
   bottom: 15px;
@@ -97,12 +98,24 @@ const Redo = styled.div`
     width: 15px;
     height: 15px;
     cursor: pointer;
+    /* STEP 2：取得傳入的 props 並根據它來決定動畫要不要執行 */
+    animation-duration: ${({ isLoading }) => (isLoading ? '1.5s' : '0s')};
+  }
+
+  /* STEP 1：定義旋轉的動畫效果，並取名為 rotate */
+  @keyframes rotate {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0deg);
+    }
   }
 `;
 
 const getMoment = (locationName) => {
   // 新北 => 新北市
-  locationName = locationName + "市";
+  locationName = locationName + '市';
 
   // STEP 2：從日出日落時間中找出符合的地區
   const location = sunriseAndSunsetData.find(
@@ -116,13 +129,13 @@ const getMoment = (locationName) => {
   const now = new Date();
   now.setFullYear(2019);
   // STEP 5：將當前時間以 "2019-10-08" 的時間格式呈現
-  const nowDate = Intl.DateTimeFormat("zh-TW", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+  const nowDate = Intl.DateTimeFormat('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   })
     .format(now)
-    .replace(/\//g, "-");
+    .replace(/\//g, '-');
 
   // STEP 6：從該地區中找到對應的日期
   const locationDate =
@@ -139,23 +152,36 @@ const getMoment = (locationName) => {
 
   // STEP 8：若當前時間介於日出和日落中間，則表示為白天，否則為晚上
   return sunriseTimestamp <= nowTimeStamp && nowTimeStamp <= sunsetTimestamp
-    ? "day"
-    : "night";
+    ? 'day'
+    : 'night';
 };
 
 const WeatherApp = () => {
-  console.log("--- invoke function component ---");
+  console.log('--- invoke function component ---');
   const [weatherElement, setWeatherElement] = useState({
     observationTime: new Date(),
-    locationName: "",
+    locationName: '',
     humid: 0,
     temperature: 0,
     windSpeed: 0,
-    description: "",
+    description: '',
     weatherCode: 0,
     rainPossibility: 0,
-    comfortability: "",
+    comfortability: '',
+    isLoading: true,
   });
+
+  const {
+    observationTime,
+    locationName,
+    temperature,
+    windSpeed,
+    description,
+    weatherCode,
+    rainPossibility,
+    comfortability,
+    isLoading,
+  } = weatherElement;
 
   // useCallback 的用法是將一個函式包覆並將該函式記憶起來，最後回傳記憶的函式
   const fetchData = useCallback(() => {
@@ -169,22 +195,29 @@ const WeatherApp = () => {
       setWeatherElement({
         ...currentWeather,
         ...weatherForecast,
+        isLoading: false,
       });
     };
+
+    setWeatherElement((prevState) => ({
+      ...prevState,
+      isLoading: true,
+    }));
+
     fetchingData();
     // 因為 fetchingData 沒有相依到 React 組件中的資料狀態，
     // 所以 dependencies 陣列中不帶入元素
   }, []); // dependincies 改變才會產生新的 fetchData
 
   useEffect(() => {
-    console.log("execute function in useEffect");
+    console.log('execute function in useEffect');
     fetchData();
   }, [fetchData]); //如果沒有寫 useCallback 會造成無限迴圈
   // (因為 fetchData function 是一個物件，物件指到的記憶體都不相同)
 
   const fetchCurrentWeather = () => {
     return fetch(
-      "https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&StationName=新北"
+      'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&StationName=新北'
     )
       .then((response) => response.json())
       .then((data) => {
@@ -207,14 +240,14 @@ const WeatherApp = () => {
 
   const fetchWeatherForecast = () => {
     return fetch(
-      "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&locationName=臺北市"
+      'https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-507B37E0-0383-4D8C-878D-628B54EC3536&locationName=臺北市'
     )
       .then((response) => response.json())
       .then((data) => {
         const locationData = data.records.location[0];
         const weatherElements = locationData.weatherElement.reduce(
           (neededElements, item) => {
-            if (["Wx", "PoP", "CI"].includes(item.elementName)) {
+            if (['Wx', 'PoP', 'CI'].includes(item.elementName)) {
               neededElements[item.elementName] = item.time[0].parameter;
             }
             return neededElements;
@@ -238,38 +271,38 @@ const WeatherApp = () => {
 
   return (
     <Container>
-      {console.log("render")}
+      {console.log('render', 'isLoading', isLoading)}
       <WeatherCard>
-        <Location>{weatherElement.locationName}</Location>
+        <Location>{locationName}</Location>
         <Description>
-          {weatherElement.description} {weatherElement.comfortability}
+          {description} {comfortability}
         </Description>
         <CurrentWeather>
           <Temperature>
-            {Math.round(weatherElement.temperature)} <Celsius>°C</Celsius>
+            {Math.round(temperature)} <Celsius>°C</Celsius>
           </Temperature>
           <WeatherIcon
-            currentWeatherCode={weatherElement.weatherCode}
-            moment={moment || "day"}
+            currentWeatherCode={weatherCode}
+            moment={moment || 'day'}
           />
         </CurrentWeather>
         <AirFlow>
           <AirFlowIcon />
-          {weatherElement.windSpeed} m/h
+          {windSpeed} m/h
         </AirFlow>
         <Rain>
           <RainIcon />
-          {Math.round(weatherElement.rainPossibility)} %
+          {Math.round(rainPossibility)} %
         </Rain>
 
-        <Redo onClick={fetchData}>
+        <Refresh onClick={fetchData} isLoading={isLoading}>
           最後觀測時間：
-          {new Intl.DateTimeFormat("zh-TW", {
-            hour: "numeric",
-            minute: "numeric",
-          }).format(new Date(weatherElement.observationTime))}{" "}
-          <RedoIcon />
-        </Redo>
+          {new Intl.DateTimeFormat('zh-TW', {
+            hour: 'numeric',
+            minute: 'numeric',
+          }).format(new Date(observationTime))}{' '}
+          {isLoading ? <LoadingIcon /> : <RefreshIcon />}
+        </Refresh>
       </WeatherCard>
     </Container>
   );
