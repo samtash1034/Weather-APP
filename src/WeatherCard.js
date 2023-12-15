@@ -4,8 +4,17 @@ import { ReactComponent as LoadingIcon } from './images/loading.svg';
 import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
 import { ReactComponent as RainIcon } from './images/rain.svg';
 import { ReactComponent as RefreshIcon } from './images/redo.svg';
-
+import { ReactComponent as CogIcon } from './images/cog.svg';
 import WeatherIcon from './WeatherIcon';
+
+const Cog = styled(CogIcon)`
+  position: absolute;
+  top: 30px;
+  right: 15px;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+`;
 
 const WeatherCardWrapper = styled.div`
   position: relative;
@@ -107,7 +116,7 @@ const Refresh = styled.div`
 // STEP 1：在參數中帶入 props 即可取得外層組件傳入的資料
 const WeatherCard = (props) => {
   // STEP 2：透過物件的解構賦值從 props 中取出傳入的資料
-  const { weatherElement, moment, fetchData } = props;
+  const { weatherElement, moment, fetchData, setCurrentPage } = props;
 
   // STEP 3：將 weatherElement 中的資料透過解構賦值取出後，放置到 JSX 中使用
   const {
@@ -124,6 +133,8 @@ const WeatherCard = (props) => {
 
   return (
     <WeatherCardWrapper>
+      {/* 如何從子層組件去修改父層組件的資料狀態 */}
+      <Cog onClick={() => setCurrentPage('WeatherSetting')} />
       <Location>{locationName}</Location>
       <Description>
         {description} {comfortability}

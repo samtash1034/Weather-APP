@@ -4,6 +4,7 @@ import sunriseAndSunsetData from './sunrise-sunset.json';
 import WeatherCard from './WeatherCard';
 import { ThemeProvider } from '@emotion/react';
 import useWeatherApi from './useWeatherApi';
+import WeatherSetting from './WeatherSetting';
 
 const Container = styled.div`
   background-color: ${({ theme }) => theme.backgroundColor};
@@ -96,15 +97,25 @@ const WeatherApp = () => {
     // 記得把 moment 放入 dependencies 中
   }, [moment]);
 
+  const [currentPage, setCurrentPage] = useState('WeatherCard');
+
   return (
     // 括號表示法，用變數來指定存取變數的名稱
     <ThemeProvider theme={theme[currentTheme]}>
       <Container>
-        <WeatherCard
-          weatherElement={weatherElement}
-          moment={moment}
-          fetchData={fetchData}
-        />
+        {/* && 前面為 true 才會執行後面*/}
+        {currentPage === 'WeatherCard' && (
+          <WeatherCard
+            weatherElement={weatherElement}
+            moment={moment}
+            fetchData={fetchData}
+            setCurrentPage={setCurrentPage}
+          />
+        )}
+
+        {currentPage === 'WeatherSetting' && (
+          <WeatherSetting setCurrentPage={setCurrentPage} />
+        )}
       </Container>
     </ThemeProvider>
   );
