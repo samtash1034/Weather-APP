@@ -1,7 +1,8 @@
 // ./src/WeatherSetting.js
 
-import React, { useState, useRef } from 'react';
-import styled from '@emotion/styled';
+import React, { useState, useRef } from "react";
+import styled from "@emotion/styled";
+import { availableLocations } from "./utils";
 
 const WeatherSettingWrapper = styled.div`
   position: relative;
@@ -89,37 +90,14 @@ const Save = styled.button`
   }
 `;
 
-const locations = [
-  '嘉義縣',
-  '新北市',
-  '嘉義市',
-  '新竹縣',
-  '新竹市',
-  '臺北市',
-  '臺南市',
-  '宜蘭縣',
-  '苗栗縣',
-  '雲林縣',
-  '花蓮縣',
-  '臺中市',
-  '臺東縣',
-  '桃園市',
-  '南投縣',
-  '高雄市',
-  '金門縣',
-  '屏東縣',
-  '基隆市',
-  '澎湖縣',
-  '彰化縣',
-  '連江縣',
-];
+const locations = availableLocations.map((location) => location.cityName);
 
-const WeatherSetting = ({ setCurrentPage }) => {
+const WeatherSetting = ({ setCurrentPage, cityName, setCurrentCity }) => {
   // ===================== UnControlled Components ========================
-  const inputLocationRef = useRef(null);
+  // const inputLocationRef = useRef(null);
 
   //===================== Controlled Components ========================
-  const [locationName, setLocationName] = useState('臺北市');
+  const [locationName, setLocationName] = useState(cityName);
 
   const handleChange = (e) => {
     console.log(e.target.value);
@@ -128,13 +106,13 @@ const WeatherSetting = ({ setCurrentPage }) => {
   };
 
   const handleSave = () => {
-    const locationName = inputLocationRef.current.value;
-    console.log(locationName);
+    // const locationName = inputLocationRef.current.value;
 
     if (locations.includes(locationName)) {
       console.log(`儲存的地區資訊為：${locationName}`);
 
-      setCurrentPage('WeatherCard');
+      setCurrentCity(locationName);
+      setCurrentPage("WeatherCard");
     } else {
       alert(`儲存失敗，您輸入的${locationName} 並非有效的地區`);
       return;
@@ -144,18 +122,18 @@ const WeatherSetting = ({ setCurrentPage }) => {
   return (
     <WeatherSettingWrapper>
       <Title>設定</Title>
-      <StyledLabel htmlFor='location'>地區</StyledLabel>
+      <StyledLabel htmlFor="location">地區</StyledLabel>
       <StyledInputList
-        ref={inputLocationRef}
+        // ref={inputLocationRef}
         // 在 uncontrolled components 中可以使用 defaultValue 定義預設值
-        defaultValue='臺南市'
-        list='location-list'
-        id='location'
-        name='location'
+        defaultValue="臺南市"
+        list="location-list"
+        id="location"
+        name="location"
         onChange={handleChange}
         value={locationName}
       />
-      <datalist id='location-list'>
+      <datalist id="location-list">
         {/* 利用迴圈的方式跑出所有 option */}
         {locations.map((location) => (
           <option value={location} key={location} />
@@ -164,7 +142,7 @@ const WeatherSetting = ({ setCurrentPage }) => {
 
       <ButtonGroup>
         {/* 如何從子層組件去修改父層組件的資料狀態 */}
-        <Back onClick={() => setCurrentPage('WeatherCard')}>返回</Back>
+        <Back onClick={() => setCurrentPage("WeatherCard")}>返回</Back>
         <Save onClick={handleSave}>儲存</Save>
       </ButtonGroup>
     </WeatherSettingWrapper>

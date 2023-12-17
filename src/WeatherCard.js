@@ -1,11 +1,11 @@
-import React from 'react';
-import styled from '@emotion/styled';
-import { ReactComponent as LoadingIcon } from './images/loading.svg';
-import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
-import { ReactComponent as RainIcon } from './images/rain.svg';
-import { ReactComponent as RefreshIcon } from './images/redo.svg';
-import { ReactComponent as CogIcon } from './images/cog.svg';
-import WeatherIcon from './WeatherIcon';
+import React from "react";
+import styled from "@emotion/styled";
+import { ReactComponent as LoadingIcon } from "./images/loading.svg";
+import { ReactComponent as AirFlowIcon } from "./images/airFlow.svg";
+import { ReactComponent as RainIcon } from "./images/rain.svg";
+import { ReactComponent as RefreshIcon } from "./images/redo.svg";
+import { ReactComponent as CogIcon } from "./images/cog.svg";
+import WeatherIcon from "./WeatherIcon";
 
 const Cog = styled(CogIcon)`
   position: absolute;
@@ -100,7 +100,7 @@ const Refresh = styled.div`
     height: 15px;
     cursor: pointer;
     animation: rotate infinite 1.5s linear;
-    animation-duration: ${({ isLoading }) => (isLoading ? '1.5s' : '0s')};
+    animation-duration: ${({ isLoading }) => (isLoading ? "1.5s" : "0s")};
   }
 
   @keyframes rotate {
@@ -116,12 +116,12 @@ const Refresh = styled.div`
 // STEP 1：在參數中帶入 props 即可取得外層組件傳入的資料
 const WeatherCard = (props) => {
   // STEP 2：透過物件的解構賦值從 props 中取出傳入的資料
-  const { weatherElement, moment, fetchData, setCurrentPage } = props;
+  const { weatherElement, moment, fetchData, setCurrentPage, cityName } = props;
 
   // STEP 3：將 weatherElement 中的資料透過解構賦值取出後，放置到 JSX 中使用
   const {
     observationTime,
-    locationName,
+    // locationName,
     temperature,
     windSpeed,
     description,
@@ -130,12 +130,13 @@ const WeatherCard = (props) => {
     comfortability,
     isLoading,
   } = weatherElement;
+  console.log(cityName);
 
   return (
     <WeatherCardWrapper>
       {/* 如何從子層組件去修改父層組件的資料狀態 */}
-      <Cog onClick={() => setCurrentPage('WeatherSetting')} />
-      <Location>{locationName}</Location>
+      <Cog onClick={() => setCurrentPage("WeatherSetting")} />
+      <Location>{cityName}</Location>
       <Description>
         {description} {comfortability}
       </Description>
@@ -145,7 +146,7 @@ const WeatherCard = (props) => {
         </Temperature>
         <WeatherIcon
           currentWeatherCode={weatherCode}
-          moment={moment || 'day'}
+          moment={moment || "day"}
         />
       </CurrentWeather>
       <AirFlow>
@@ -159,10 +160,10 @@ const WeatherCard = (props) => {
 
       <Refresh onClick={fetchData} isLoading={isLoading}>
         最後觀測時間：
-        {new Intl.DateTimeFormat('zh-TW', {
-          hour: 'numeric',
-          minute: 'numeric',
-        }).format(new Date(observationTime))}{' '}
+        {new Intl.DateTimeFormat("zh-TW", {
+          hour: "numeric",
+          minute: "numeric",
+        }).format(new Date(observationTime))}{" "}
         {isLoading ? <LoadingIcon /> : <RefreshIcon />}
       </Refresh>
     </WeatherCardWrapper>
