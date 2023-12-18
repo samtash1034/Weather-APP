@@ -19,7 +19,7 @@
 <img src="./src/images/readme2.png" alt="" width="400">
 <img src="./src/images/readme3.png" alt="" width="400">
 
-# 參考資料：
+# 參考資料
 
 1. [從 Hooks 開始，讓你的網頁 React 起來](https://ithelp.ithome.com.tw/users/20103315/ironman/2668)
 2. [中央氣象局 Opendata API 線上說明文件](https://opendata.cwb.gov.tw/dist/opendata-swagger.html)
